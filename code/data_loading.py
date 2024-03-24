@@ -35,6 +35,15 @@ df['Year_ID'] = df['Year'].fillna('no_year')
 year_ids = {year_id: index for (index, year_id) in enumerate(df['Year_ID'].unique())}
 df['Year_ID'] = df['Year_ID'].map(year_ids)
 
+# Creating Sub-brand IDs
+df['Sub_Brand_ID'] = df['Sub_Brand'].fillna('no_sub_brand') + df['Brand'].fillna('no_brand')
+sub_brand_ids = {sub_brand_id: index for (index, sub_brand_id) in enumerate(df['Sub_Brand_ID'].unique())}
+df['Sub_Brand_ID'] = df['Sub_Brand_ID'].map(sub_brand_ids)
+
+# Creating Brand IDs
+df['Brand_ID'] = df['Brand'].fillna('no_brand')
+brand_ids = {brand_id: index for (index, brand_id) in enumerate(df['Brand_ID'].unique())}
+df['Brand_ID'] = df['Brand_ID'].map(brand_ids)
 
 # -------------------------------------------------------------
 # STORES TABLE
@@ -93,6 +102,26 @@ for row in range(len(df_t)):
     sql_queries.append(ins)
 
 with open('time.sql', 'w') as sql_file:
+
+    for query in sql_queries:
+        sql_file.write(query + '\n')
+
+# -------------------------------------------------------------
+# PRODUCT TABLE
+
+columns = ['Product', 'Sub_Brand_ID', 'Sub_Brand', 'Brand_ID', 'Brand']
+df_t = df[columns]
+df_t = df_t.drop_duplicates().reset_index(drop=True)
+
+sql_queries = [
+    "CREATE TABLE IF NOT EXISTS PRODUCT (Product_ID INT AUTO_INCREMENT, Product VARCHAR(50), Sub_Brand_ID INT, Sub_Brand VARCHAR(100), Brand_ID INT, Brand VARCHAR(50), PRIMARY KEY(Product_ID));"
+]
+
+for row in range(len(df_t)):
+    ins = f'INSERT INTO PRODUCT (Product, Sub_Brand_ID, Sub_Brand, Brand_ID, Brand) VALUES ("{df_t["Product"][row]}", {df_t["Sub_Brand_ID"][row]},"{df_t["Sub_Brand"][row]}", {df_t["Brand_ID"][row]}, "{df_t["Brand"][row]}");'
+    sql_queries.append(ins)
+
+with open('product.sql', 'w') as sql_file:
 
     for query in sql_queries:
         sql_file.write(query + '\n')
