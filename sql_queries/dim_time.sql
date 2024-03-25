@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS TIME (Day_ID INT AUTO_INCREMENT, Day INT, Weekday INT, Month_ID INT, Month INT, Month_Name VARCHAR(20), Year_ID INT, Year INT, PRIMARY KEY(Day_ID));
+CREATE TABLE IF NOT EXISTS DIM_TIME (Day_ID INT AUTO_INCREMENT, Day INT, Weekday INT, Month_ID INT, Month INT, Month_Name VARCHAR(20), Year_ID INT, Year INT, PRIMARY KEY(Day_ID));
 INSERT INTO DIM_TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES (14, 4, 0, 1, "January", 0, 2016);
 INSERT INTO DIM_TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES (15, 5, 0, 1, "January", 0, 2016);
 INSERT INTO DIM_TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES (16, 6, 0, 1, "January", 0, 2016);

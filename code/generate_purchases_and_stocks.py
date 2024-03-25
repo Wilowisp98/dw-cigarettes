@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import os
 
 from utils import log_wrapper
 
@@ -78,7 +77,7 @@ def get_stocks(purchases: pd.DataFrame, sls: pd.DataFrame) -> pd.DataFrame:
     return stocks
 
 
-if __name__ == '__main__':
+def main():
     sls = load_sls_data()
     purchases = get_purchases(sls)
     stocks = get_stocks(purchases, sls)
@@ -90,3 +89,7 @@ if __name__ == '__main__':
     # stocks.to_csv(f'{current_directory}/../datasets/stocks.csv', index=False)
     stocks.to_feather(f'{current_directory}/../datasets/stocks.feather')
     print("Completed")
+
+
+if __name__ == '__main__':
+    main()
