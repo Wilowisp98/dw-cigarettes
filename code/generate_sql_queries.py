@@ -1,6 +1,10 @@
 import pandas as pd
 
-df = pd.read_csv('datasets/cigarettes_treated.csv')
+try:
+    df = pd.read_feather('datasets/cigarettes_treated.feather')
+except Exception as e:
+    df = pd.read_csv('../datasets/cigarettes_treated.csv')
+    df['Date'] = pd.to_datetime(df['Date'])
 df = df.sort_values(by=['Year', 'Month', 'Day'])
 
 queries_directory = f'{__file__.split("\\")[:-1]}\\..\\sql_queries'
