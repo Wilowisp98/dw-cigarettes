@@ -30,7 +30,8 @@ df['Fieldworker_ID'] = df['Fieldworker_ID'].map(fieldworkers_ids)
 df = df.drop(columns=['Fieldworker_Code'])
 
 # Fixing Store_ID
-df['Store_ID2'] = df['Province'].fillna('no_province') + df['City'].fillna('no_city') + df['Suburb'].fillna('no_suburb') + df['Outlet_Type'].fillna('no_outlet_type') + df['Retail_Subtype'].fillna('no_oretail_subtype')
+# df['Store_ID2'] = df['Province'].fillna('no_province') + df['City'].fillna('no_city') + df['Suburb'].fillna('no_suburb') + df['Outlet_Type'].fillna('no_outlet_type') + df['Retail_Subtype'].fillna('no_oretail_subtype')
+df['Store_ID2'] = df['Province'].fillna('no_province') + df['City'].fillna('no_city') + df['Suburb'].fillna('no_suburb') + df['Outlet_Type'].fillna('no_outlet_type')
 store_ids = {store_id: index for (index, store_id) in enumerate(df['Store_ID2'].unique())}
 df['Store_ID2'] = df['Store_ID2'].map(store_ids)
 
