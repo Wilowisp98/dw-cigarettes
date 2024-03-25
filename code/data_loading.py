@@ -3,6 +3,8 @@ import pandas as pd
 df = pd.read_csv('datasets/cigarettes_treated.csv')
 df = df.sort_values(by=['Year', 'Month', 'Day'])
 
+queries_directory = f'{__file__.split("\\")[:-1]}\\..\\sql_queries'
+
 # -----------------------------------------------
 # ALL OF THIS CAN GO TO THE DATA_TREATMENT SCRIPT
 # -----------------------------------------------
@@ -65,14 +67,14 @@ df_t = df[columns]
 df_t = df_t.drop_duplicates().reset_index(drop=True)
 
 sql_queries = [
-    "CREATE TABLE IF NOT EXISTS STORE (Store_ID INT,Outlet_Type VARCHAR(50), Retail_Subtype VARCHAR(50), PRIMARY KEY(Store_ID));"
+    "CREATE TABLE IF NOT EXISTS DIM_STORE (Store_ID INT,Outlet_Type VARCHAR(50), Retail_Subtype VARCHAR(50), PRIMARY KEY(Store_ID));"
 ]
 
 for row in range(len(df_t)):
     ins = f'INSERT INTO STORE (Store_ID, Outlet_Type, Retail_Subtype) VALUES ({df_t["Store_ID2"][row]}, "{df_t["Outlet_Type"][row]}", "{df_t["Retail_Subtype"][row]}");'
     sql_queries.append(ins)
 
-with open('store.sql', 'w') as sql_file:
+with open(f'{queries_directory}\\dim_store.sql', 'w') as sql_file:
 
     for query in sql_queries:
         sql_file.write(query + '\n')
@@ -85,14 +87,14 @@ df_t = df[columns]
 df_t = df_t.drop_duplicates().reset_index(drop=True)
 
 sql_queries = [
-    "CREATE TABLE IF NOT EXISTS LOCALIZATION (Suburb_ID INT, Suburb VARCHAR(50), Province_ID INT, Province VARCHAR(50), City_ID INT, City VARCHAR(50), Country_ID INT, Country VARCHAR(50), PRIMARY KEY(Suburb_ID));"
+    "CREATE TABLE IF NOT EXISTS DIM_LOCATION (Suburb_ID INT, Suburb VARCHAR(50), Province_ID INT, Province VARCHAR(50), City_ID INT, City VARCHAR(50), Country_ID INT, Country VARCHAR(50), PRIMARY KEY(Suburb_ID));"
 ]
 
 for row in range(len(df_t)):
     ins = f'INSERT INTO LOCALIZATION (Suburb_ID, Suburb, Province_ID, Province, City_ID, City, Country_ID, Country) VALUES ({df_t["Suburb_ID"][row]}, "{df_t["Suburb"][row]}", {df_t["Province_ID"][row]},"{df_t["Province"][row]}", {df_t["City_ID"][row]},"{df_t["City"][row]}", {df_t["Country_ID"][row]},"{df_t["Country"][row]}");'
     sql_queries.append(ins)
 
-with open('localization.sql', 'w') as sql_file:
+with open(f'{queries_directory}\\dim_location.sql', 'w') as sql_file:
 
     for query in sql_queries:
         sql_file.write(query + '\n')
@@ -109,10 +111,10 @@ sql_queries = [
 ]
 
 for row in range(len(df_t)):
-    ins = f'INSERT INTO TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES ({int(df_t["Day"][row])}, {int(df_t["weekday"][row])}, {int(df_t["Month_ID"][row])}, {int(df_t["Month"][row])}, "{df_t["Month_Name"][row]}", {int(df_t["Year_ID"][row])}, {int(df_t["Year"][row])});'
+    ins = f'INSERT INTO DIM_TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES ({int(df_t["Day"][row])}, {int(df_t["weekday"][row])}, {int(df_t["Month_ID"][row])}, {int(df_t["Month"][row])}, "{df_t["Month_Name"][row]}", {int(df_t["Year_ID"][row])}, {int(df_t["Year"][row])});'
     sql_queries.append(ins)
 
-with open('time.sql', 'w') as sql_file:
+with open(f'{queries_directory}\\dim_time.sql', 'w') as sql_file:
 
     for query in sql_queries:
         sql_file.write(query + '\n')
@@ -125,14 +127,14 @@ df_t = df[columns]
 df_t = df_t.drop_duplicates().reset_index(drop=True)
 
 sql_queries = [
-    "CREATE TABLE IF NOT EXISTS PRODUCT (Product_ID INT, Product VARCHAR(50), Sub_Brand_ID INT, Sub_Brand VARCHAR(100), Brand_ID INT, Brand VARCHAR(50), PRIMARY KEY(Product_ID));"
+    "CREATE TABLE IF NOT EXISTS DIM_PRODUCT (Product_ID INT, Product VARCHAR(50), Sub_Brand_ID INT, Sub_Brand VARCHAR(100), Brand_ID INT, Brand VARCHAR(50), PRIMARY KEY(Product_ID));"
 ]
 
 for row in range(len(df_t)):
     ins = f'INSERT INTO PRODUCT (Product_ID, Product, Sub_Brand_ID, Sub_Brand, Brand_ID, Brand) VALUES ({df_t["Product_ID"][row]}, "{df_t["Product"][row]}", {df_t["Sub_Brand_ID"][row]},"{df_t["Sub_Brand"][row]}", {df_t["Brand_ID"][row]}, "{df_t["Brand"][row]}");'
     sql_queries.append(ins)
 
-with open('product.sql', 'w') as sql_file:
+with open(f'{queries_directory}\\dim_product.sql', 'w') as sql_file:
 
     for query in sql_queries:
         sql_file.write(query + '\n')
@@ -152,7 +154,7 @@ for row in range(len(df_t)):
     ins = f'INSERT INTO SALES (Store_ID, Suburb_ID, Day_ID, Product_ID, Quantity, Price) VALUES ({df_t["Store_ID2"][row]}, {df_t["Suburb_ID"][row]},{df_t["Day_ID"][row]}, {df_t["Product_ID"][row]}, {df_t["Quantity"][row]}, {df_t["Dollar_Price"][row]});'
     sql_queries.append(ins)
 
-with open('sales.sql', 'w') as sql_file:
+with open(f'{queries_directory}\\sales.sql', 'w') as sql_file:
 
     for query in sql_queries:
         sql_file.write(query + '\n')
