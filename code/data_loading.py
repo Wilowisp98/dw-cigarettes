@@ -35,8 +35,12 @@ df['Month_Name'] = df['Month'].map(month_names)
 # Creating Month IDs
 df['Day_ID'] = pd.factorize(df['Day'].astype(str) + '_' + df['Month'].astype(str) + '_' + df['Year'].astype(str))[0]
 
+df['weekday'] = pd.to_datetime(df[['Year', 'Month', 'Day']]).dt.weekday + 1
+
 # Creating Month IDs
 df['Month_ID'] = pd.factorize(df['Month'].astype(str) + '_' + df['Year'].astype(str))[0]
+
+df['Month'] = df['Date'].dt.month
 
 # Creating Year IDs
 df['Year_ID'] = df['Year'].fillna('no_year')
@@ -96,16 +100,16 @@ with open('localization.sql', 'w') as sql_file:
 # -------------------------------------------------------------
 # TIME TABLE
 
-columns = ['Day_ID', 'Day', 'Month_ID', 'Month_Name', 'Year_ID', 'Year']
+columns = ['Day_ID', 'Day', 'weekday', 'Month_ID', 'Month', 'Month_Name', 'Year_ID', 'Year']
 df_t = df[columns]
 df_t = df_t.drop_duplicates().reset_index(drop=True)
 
 sql_queries = [
-    "CREATE TABLE IF NOT EXISTS TIME (Day_ID INT, Day INT, Month_ID INT, Month VARCHAR(20), Year_ID INT, Year INT, PRIMARY KEY(Day_ID));"
+    "CREATE TABLE IF NOT EXISTS TIME (Day_ID INT AUTO_INCREMENT, Day INT, Weekday INT, Month_ID INT, Month INT, Month_Name VARCHAR(20), Year_ID INT, Year INT, PRIMARY KEY(Day_ID));"
 ]
 
 for row in range(len(df_t)):
-    ins = f'INSERT INTO TIME (Day_ID, Day, Month_ID, Month, Year_ID, Year) VALUES ({df_t["Day_ID"][row]}, {df_t["Day"][row]}, {df_t["Month_ID"][row]},"{df_t["Month_Name"][row]}", {df_t["Year_ID"][row]},{df_t["Year"][row]});'
+    ins = f'INSERT INTO TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES ({int(df_t["Day"][row])}, {int(df_t["weekday"][row])}, {int(df_t["Month_ID"][row])}, {int(df_t["Month"][row])}, "{df_t["Month_Name"][row]}", {int(df_t["Year_ID"][row])}, {int(df_t["Year"][row])});'
     sql_queries.append(ins)
 
 with open('time.sql', 'w') as sql_file:
