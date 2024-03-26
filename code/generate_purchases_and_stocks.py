@@ -7,7 +7,7 @@ from utils import log_wrapper
 current_directory = __file__.split("\\")[:-1]
 
 
-# Load data function
+# Load data functions
 @log_wrapper
 def load_sls_data(file_name: str=f'{current_directory}/../datasets/cigarettes_treated.feather') -> pd.DataFrame:
     '''
@@ -18,8 +18,21 @@ def load_sls_data(file_name: str=f'{current_directory}/../datasets/cigarettes_tr
             sls (pd.DataFrame): the SLS dataset
     '''
     sls = pd.read_feather(file_name)
-    sls = sls.groupby(by=['Store_ID2', 'Product_ID', 'Date'], as_index=False)['Quantity'].sum()
+    sls = sls.groupby(by=['Store_ID2', 'Product_ID', 'Date', 'Day_ID'], as_index=False)['Quantity'].sum()
     return sls
+
+
+@log_wrapper
+def load_dimtime_data(file_name: str=f'{current_directory}/../datasets/dim_time.feather') -> pd.DataFrame:
+    '''
+        Load the SLS dataset
+        Args:
+            file_name (str): path to the file to be loaded
+        Returns:
+            df (pd.DataFrame): the SLS dataset
+    '''
+    df = pd.read_feather(file_name)
+    return df
 
 
 # Generate purchases from sls dataframe
@@ -57,7 +70,7 @@ def get_stocks(purchases: pd.DataFrame, sls: pd.DataFrame) -> pd.DataFrame:
     # Now that we have sales and stocks, we just have to add stocks minus sales to obtain the inventory.
     # ----------------------------------------------------
     # Use sales as base for stocks table
-    stocks = sls.rename(columns={'Quantity': 'Sales'})
+    stocks = sls[['Product_ID', 'Store_ID2', 'Quantity', 'Date']].rename(columns={'Quantity': 'Sales'})
     stocks = stocks.merge(purchases, how='outer').rename(columns={'Quantity': 'Purchases'})
     stocks[['Sales', 'Purchases']] = stocks[['Sales', 'Purchases']].fillna(0)
 
@@ -81,6 +94,11 @@ def main():
     sls = load_sls_data()
     purchases = get_purchases(sls)
     stocks = get_stocks(purchases, sls)
+    dim_time = load_dimtime_data()
+
+    # Add DAY_ID to purchases and Stocks and drop DATE column
+    purchases = purchases.merge(dim_time[['Date', 'Day_ID']], how='left').drop(columns=['Date'])
+    stocks = stocks.merge(dim_time[['Date', 'Day_ID']], how='left').drop(columns=['Date'])
     print("Writing files...")
     # Writing purchase files
     # purchases.to_csv(f'{current_directory}/../datasets/purchases.csv', index=False)

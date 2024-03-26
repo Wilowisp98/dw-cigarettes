@@ -7,9 +7,11 @@ from utils import log_wrapper, generate_sql
 def main(db_name = 'dw_cigarettes'):
     try:
         df = pd.read_feather('datasets/cigarettes_treated.feather')
+        dim_time = pd.read_feather('datasets/dim_time.feather')
     except Exception as e:
         df = pd.read_csv('../datasets/cigarettes_treated.csv')
         df['Date'] = pd.to_datetime(df['Date'])
+        dim_time = pd.read_feather('../datasets/dim_time.feather')
     df = df.sort_values(by=['Year', 'Month', 'Day'])
 
     queries_directory = f'{__file__.split("\\")[:-1]}\\..\\sql_queries'
@@ -17,60 +19,6 @@ def main(db_name = 'dw_cigarettes'):
     # Generate SQL to create Database if not exists
     with open(f'{queries_directory}\\00-create_dbase.sql', 'w') as sql_file:
         sql_file.write(f'CREATE DATABASE IF NOT EXISTS {db_name};')
-
-    # -----------------------------------------------
-    # ALL OF THIS CAN GO TO THE DATA_TREATMENT SCRIPT
-    # -----------------------------------------------
-    # Creating Suburb IDs
-    df['Suburb_ID'] = df['Suburb'].fillna('no_suburb') + df['Province'].fillna('no_province') + df['City'].fillna('no_city') + df['Country'].fillna('no_country')
-    suburb_ids = {suburb_id: index for (index, suburb_id) in enumerate(df['Suburb_ID'].unique())}
-    df['Suburb_ID'] = df['Suburb_ID'].map(suburb_ids)
-
-    # Creating Province IDs
-    df['Province_ID'] = df['Province'].fillna('no_province') + df['City'].fillna('no_city') + df['Country'].fillna('no_Country')
-    province_ids = {province_id: index for (index, province_id) in enumerate(df['Province_ID'].unique())}
-    df['Province_ID'] = df['Province_ID'].map(province_ids)
-
-    # Creating City IDs
-    df['City_ID'] = df['City'].fillna('no_city') + df['Country'].fillna('no_Country')
-    city_ids = {city_id: index for (index, city_id) in enumerate(df['City_ID'].unique())}
-    df['City_ID'] = df['City_ID'].map(city_ids)
-
-    # Creating Country IDs
-    df['Country_ID'] = df['Country'].fillna('no_Country')
-    country_ids = {country_id: index for (index, country_id) in enumerate(df['Country_ID'].unique())}
-    df['Country_ID'] = df['Country_ID'].map(country_ids)
-
-    # Creating Month Name Columns
-    month_names = {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June',
-                7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'}
-
-    df['Month_Name'] = df['Month'].map(month_names)
-
-    # Creating Month IDs
-    df['Day_ID'] = pd.factorize(df['Day'].astype(str) + '_' + df['Month'].astype(str) + '_' + df['Year'].astype(str))[0]
-
-    df['weekday'] = pd.to_datetime(df[['Year', 'Month', 'Day']]).dt.weekday + 1
-
-    # Creating Month IDs
-    df['Month_ID'] = pd.factorize(df['Month'].astype(str) + '_' + df['Year'].astype(str))[0]
-
-    df['Month'] = df['Date'].dt.month
-
-    # Creating Year IDs
-    df['Year_ID'] = df['Year'].fillna('no_year')
-    year_ids = {year_id: index for (index, year_id) in enumerate(df['Year_ID'].unique())}
-    df['Year_ID'] = df['Year_ID'].map(year_ids)
-
-    # Creating Sub-brand IDs
-    df['Sub_Brand_ID'] = df['Sub_Brand'].fillna('no_sub_brand') + df['Brand'].fillna('no_brand')
-    sub_brand_ids = {sub_brand_id: index for (index, sub_brand_id) in enumerate(df['Sub_Brand_ID'].unique())}
-    df['Sub_Brand_ID'] = df['Sub_Brand_ID'].map(sub_brand_ids)
-
-    # Creating Brand IDs
-    df['Brand_ID'] = df['Brand'].fillna('no_brand')
-    brand_ids = {brand_id: index for (index, brand_id) in enumerate(df['Brand_ID'].unique())}
-    df['Brand_ID'] = df['Brand_ID'].map(brand_ids)
 
     # -------------------------------------------------------------
     # STORES TABLE
@@ -116,15 +64,15 @@ def main(db_name = 'dw_cigarettes'):
     # TIME TABLE
 
     columns = ['Day_ID', 'Day', 'weekday', 'Month_ID', 'Month', 'Month_Name', 'Year_ID', 'Year']
-    df_t = df[columns]
+    df_t = dim_time[columns]
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
     sql_queries = [
-        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_TIME (Day_ID INT AUTO_INCREMENT, Day INT, Weekday INT, Month_ID INT, Month INT, Month_Name VARCHAR(20), Year_ID INT, Year INT, PRIMARY KEY(Day_ID));"
+        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_TIME (Day_ID INT, Day INT, Weekday INT, Month_ID INT, Month INT, Month_Name VARCHAR(20), Year_ID INT, Year INT, PRIMARY KEY(Day_ID));"
     ]
 
     for row in range(len(df_t)):
-        ins = f'INSERT INTO {db_name}.DIM_TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES ({int(df_t["Day"][row])}, {int(df_t["weekday"][row])}, {int(df_t["Month_ID"][row])}, {int(df_t["Month"][row])}, "{df_t["Month_Name"][row]}", {int(df_t["Year_ID"][row])}, {int(df_t["Year"][row])});'
+        ins = f'INSERT INTO {db_name}.DIM_TIME (Day_ID, Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES ({int(df_t["Day_ID"][row])}, {int(df_t["Day"][row])}, {int(df_t["weekday"][row])}, {int(df_t["Month_ID"][row])}, {int(df_t["Month"][row])}, "{df_t["Month_Name"][row]}", {int(df_t["Year_ID"][row])}, {int(df_t["Year"][row])});'
         sql_queries.append(ins)
 
     with open(f'{queries_directory}\\03-dim_time.sql', 'w') as sql_file:
@@ -160,7 +108,7 @@ def main(db_name = 'dw_cigarettes'):
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
     sql_queries = [
-        f"CREATE TABLE IF NOT EXISTS {db_name}.SALES (Store_ID INT, Suburb_ID INT, Day_ID INT, Product_ID INT, Quantity INT, Price DECIMAL(5,4), FOREIGN KEY (Store_ID) REFERENCES DIM_STORE(Store_ID), FOREIGN KEY (Suburb_ID) REFERENCES DIM_LOCATION(Suburb_ID), FOREIGN KEY (Day_ID) REFERENCES DIM_TIME(Day_ID), FOREIGN KEY (Product_ID) REFERENCES PRODUCT(Product_ID));"
+        f"CREATE TABLE IF NOT EXISTS {db_name}.SALES (Store_ID INT, Suburb_ID INT, Day_ID INT, Product_ID INT, Quantity INT, Price DECIMAL(10, 4), FOREIGN KEY (Store_ID) REFERENCES DIM_STORE(Store_ID), FOREIGN KEY (Suburb_ID) REFERENCES DIM_LOCATION(Suburb_ID), FOREIGN KEY (Day_ID) REFERENCES DIM_TIME(Day_ID), FOREIGN KEY (Product_ID) REFERENCES DIM_PRODUCT(Product_ID));"
     ]
 
     for row in range(len(df_t)):
@@ -175,12 +123,14 @@ def main(db_name = 'dw_cigarettes'):
     # -------------------------------------------------------------
     # Purchases Table
     purchases = pd.read_feather('../datasets/purchases.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/purchases.feather')
-    generate_sql(purchases, f'{db_name}.purchases', f'{queries_directory}\\06-purchases.sql', )
+    purchases = purchases[['Day_ID', 'Store_ID2', 'Product_ID', 'Quantity']]
+    purchases = purchases.rename(columns = {'Store_ID2': 'Store_ID'})
+    generate_sql(purchases, f'{db_name}.purchases', f'{queries_directory}\\06-purchases.sql', insert_every_row=True)
 
     # -------------------------------------------------------------
     # Stocks Table
     stocks = pd.read_feather('../datasets/stocks.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/stocks.feather')
-    generate_sql(stocks[['Store_ID2', 'Product_ID', 'Date', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', )
+    generate_sql(stocks[['Store_ID2', 'Product_ID', 'Day_ID', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', insert_every_row=True)
 
 if __name__ == '__main__':
     main(db_name = 'dw_cigarettes')

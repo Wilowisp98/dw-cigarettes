@@ -15,7 +15,15 @@ def log_wrapper(func):
     return wrapper
 
 
-def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key: Optional[str] = None, use_tqdm: bool=True) -> None:
+def generate_id(df: pd.DataFrame, cols_for_id: list) -> pd.Series:
+    output = ''
+    for col in cols_for_id: output += df[col].astype(str).fillna(f'no_{col.lower()}')
+    id_mapping = {id_str: index for (index, id_str) in enumerate(output.unique())}
+    output = output.map(id_mapping).astype(int)
+    return output
+
+
+def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key: Optional[str] = None, use_tqdm: bool=True, insert_every_row: bool=False) -> None:
     '''
         Generate a SQL query from a given dataframe and save it to a file
         Args:
@@ -43,10 +51,12 @@ def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key:
         sql_file.write('\n);')
 
         # Writing the insert statement
-        sql_file.write( f'\nINSERT INTO {table_name} VALUES (\n')
+        if not insert_every_row: sql_file.write( f'\nINSERT INTO {table_name} VALUES (\n')
+        else: sql_file.write('\n')
         iter = tqdm.tqdm(df.iloc[:-1].iterrows(), total=df.shape[0], desc='Iterating rows') if use_tqdm else df.iloc[:-1].iterrows()
         for _, row in iter:
-            sql_file.write('    (')
+            if not insert_every_row: sql_file.write('    (')
+            if insert_every_row: sql_file.write( f'INSERT INTO {table_name} VALUES (')
             for column in df.columns[:-1]: 
                 if types_mapping[df[column].dtype.name].startswith('VARCH') or types_mapping[df[column].dtype.name].startswith('DAT'): 
                     sql_file.write(f'"{row[column]}", ')
@@ -55,11 +65,23 @@ def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key:
             if types_mapping[df[column].dtype.name].startswith('VARCH') or types_mapping[df[column].dtype.name].startswith('DAT'): 
                 sql_file.write(f'"{row[column]}"')
             else: sql_file.write(f'{row[column]}')
-            sql_file.write(')\n')
+            sql_file.write(')')
+            if insert_every_row: sql_file.write(';')
+            sql_file.write('\n')
+
+        if not insert_every_row: sql_file.write('    (')
+        if insert_every_row: sql_file.write( f'INSERT INTO {table_name} VALUES (')
         row = df.iloc[-1]
+        for column in df.columns[:-1]: 
+            if types_mapping[df[column].dtype.name].startswith('VARCH') or types_mapping[df[column].dtype.name].startswith('DAT'): 
+                sql_file.write(f'"{row[column]}", ')
+            else: sql_file.write(f'{row[column]}, ')
+        column = df.columns[-1]
         if types_mapping[df[column].dtype.name].startswith('VARCH') or types_mapping[df[column].dtype.name].startswith('DAT'): 
             sql_file.write(f'"{row[column]}"')
         else: sql_file.write(f'{row[column]}')
-        sql_file.write('\n);')
+        sql_file.write(')')
+        if insert_every_row: sql_file.write(';')
+        sql_file.write('\n')
 
     return True

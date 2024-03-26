@@ -1,6 +1,6 @@
 import pandas as pd
 
-from utils import log_wrapper
+from utils import log_wrapper, generate_id
 
 
 @log_wrapper
@@ -18,33 +18,61 @@ def main():
     # Treating Data
     # -------------
     df = df.query('Year >= 1000')   # Drop everything which has a incorrect Year
-    df = df.dropna(subset=['Year', 'Month', 'Day'])      # Drop null values
+    df = df.dropna(subset=['Year', 'Month', 'Day', 'Dollar_Price', 'Quantity']).copy()      # Drop null values
     # Make date a datetime column
     df['Date'] = df['Year'].astype(int).astype(str) + '-' + df['Month'].astype(int).astype(str) + '-'  + df['Day'].astype(int).astype(str)
     df['Date'] = pd.to_datetime(df['Date'])
 
     # Generating a Product_ID
-    df['Product_ID'] = df['Product'].fillna('Cigarrettes') + df['Brand'].fillna('no_brand') + df['Sub_Brand'].fillna('no_sub_brand')
-    product_ids = {product: index for (index, product) in enumerate(df['Product_ID'].unique())}
-    df['Product_ID'] = df['Product_ID'].map(product_ids)
+    df['Product'] = df['Product'].fillna('Cigarrette')
+    df['Product_ID'] = generate_id(df, ['Product', 'Brand', 'Sub_Brand'])
+    df['Store_ID2'] = generate_id(df, ['Province', 'Store_ID', 'City', 'Suburb', 'Outlet_Type', 'Retail_Subtype'])  # Generating Store_ID
+    df['Fieldworker_ID'] = generate_id(df, ['Fieldworker_Code', 'Store_ID2'])   # Generating Fieldworker_ids
 
-    # Fixing Fieldworker_ids
-    df['Fieldworker_ID'] = df['Fieldworker_Code'].fillna('no_worker_code') + df['Store_ID'].fillna('no_store_id')
-    fieldworkers_ids = {worker: index for (index, worker) in enumerate(df['Fieldworker_ID'].unique())}
-    df['Fieldworker_ID'] = df['Fieldworker_ID'].map(fieldworkers_ids)
-    df = df.drop(columns=['Fieldworker_Code'])
+    # Rounding every float value to 4 decimal places
+    for col in df.columns:
+        if df[col].dtype.name.lower().startswith('float'):
+            df[col] = df[col].round(4)
 
-    # Fixing Store_ID
-    # df['Store_ID2'] = df['Province'].fillna('no_province') + df['City'].fillna('no_city') + df['Suburb'].fillna('no_suburb') + df['Outlet_Type'].fillna('no_outlet_type') + df['Retail_Subtype'].fillna('no_oretail_subtype')
-    df['Store_ID2'] = df['Province'].fillna('no_province') + df['City'].fillna('no_city') + df['Suburb'].fillna('no_suburb') + df['Outlet_Type'].fillna('no_outlet_type')
-    store_ids = {store_id: index for (index, store_id) in enumerate(df['Store_ID2'].unique())}
-    df['Store_ID2'] = df['Store_ID2'].map(store_ids)
+    # Generating DIM_TIME
+    dim_time = pd.date_range(df['Date'].min().replace(month=1, day=1), df['Date'].max().replace(month=12, day=31))
+    dim_time = pd.DataFrame({'Date': dim_time})
+    dim_time['Year']  = dim_time['Date'].dt.year
+    dim_time['Month'] = dim_time['Date'].dt.month
+    dim_time['Day']   = dim_time['Date'].dt.day
+
+    # Month Name + Weekday
+    dim_time['Month_Name'] = dim_time['Date'].dt.strftime('%B')
+    dim_time['weekday'] = pd.to_datetime(dim_time[['Year', 'Month', 'Day']]).dt.weekday + 1
+
+    # ----------------------------------------------------
+    #                   Dimension Tables
+    # ----------------------------------------------------
+    
+    # Generating ID's
+    df['Suburb_ID'] = generate_id(df, ['Suburb', 'Province', 'City', 'Country'])    # Creating Suburb IDs
+    df['Province_ID'] = generate_id(df, ['Province', 'City', 'Country'])            # Creating Province IDs
+    df['City_ID'] = generate_id(df, ['City', 'Country'])                            # Creating City IDs
+    df['Country_ID'] = generate_id(df, ['Country'])                                 # Creating Country IDs
+    dim_time['Day_ID'] = generate_id(dim_time, ['Date'])                            # Creating Day IDs
+    dim_time['Month_ID'] = generate_id(dim_time, ['Month', 'Year'])                       # Creating Month IDs
+    dim_time['Year_ID'] = generate_id(df, ['Year'])                                       # Creating Year IDs
+    df['Sub_Brand_ID'] = generate_id(df, ['Sub_Brand', 'Brand'])                    # Creating Sub-Brand IDs
+    df['Brand_ID'] = generate_id(df, ['Brand'])                                     # Creating Brand Ids
+
+
+    # ------------------
+    # Add Day_ID to df
+    # ------------------
+    df = df.merge(dim_time[['Date', 'Day_ID']], how='left', on='Date')
+
 
     # -------------
     # Writing Data
     # -------------
     # df.to_csv(f'{current_directory}/../datasets/cigarettes_treated.csv', index=False)
     df.to_feather(f'{current_directory}/../datasets/cigarettes_treated.feather')
+    dim_time.to_feather(f'{current_directory}/../datasets/dim_time.feather')
 
 
 if __name__ == '__main__':
