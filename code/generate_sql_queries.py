@@ -173,5 +173,10 @@ def main():
     purchases = pd.read_feather('../datasets/purchases.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/purchases.feather')
     generate_sql(purchases, 'purchases', f'{queries_directory}\\purchases.sql', )
 
+    # -------------------------------------------------------------
+    # Stocks Table
+    stocks = pd.read_feather('../datasets/stocks.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/stocks.feather')
+    generate_sql(stocks, 'stocks', f'{queries_directory}\\stocks.sql', )
+
 if __name__ == '__main__':
     main()
