@@ -4,6 +4,9 @@ import generate_purchases_and_stocks
 import generate_sql_queries
 import utils
 
+# Setting the random seed to a fixed value so we can reproduce the same results
+generate_purchases_and_stocks.np.random.seed(0)
+
 
 # Execute all scripts
 @utils.log_wrapper

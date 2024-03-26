@@ -47,11 +47,15 @@ def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key:
         iter = tqdm.tqdm(df.iloc[:-1].iterrows(), total=df.shape[0], desc='Iterating rows') if use_tqdm else df.iloc[:-1].iterrows()
         for _, row in iter:
             sql_file.write('    (')
-            for column in df.columns: 
+            for column in df.columns[:-1]: 
                 if types_mapping[df[column].dtype.name].startswith('VARCH') or types_mapping[df[column].dtype.name].startswith('DAT'): 
                     sql_file.write(f'"{row[column]}", ')
                 else: sql_file.write(f'{row[column]}, ')
-            sql_file.write(',\n')
+            column = df.columns[-1]
+            if types_mapping[df[column].dtype.name].startswith('VARCH') or types_mapping[df[column].dtype.name].startswith('DAT'): 
+                sql_file.write(f'"{row[column]}"')
+            else: sql_file.write(f'{row[column]}')
+            sql_file.write(')\n')
         row = df.iloc[-1]
         if types_mapping[df[column].dtype.name].startswith('VARCH') or types_mapping[df[column].dtype.name].startswith('DAT'): 
             sql_file.write(f'"{row[column]}"')

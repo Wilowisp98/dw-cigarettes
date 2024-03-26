@@ -83,7 +83,7 @@ def main():
         ins = f'INSERT INTO DIM_STORE (Store_ID, Outlet_Type, Retail_Subtype) VALUES ({df_t["Store_ID2"][row]}, "{df_t["Outlet_Type"][row]}", "{df_t["Retail_Subtype"][row]}");'
         sql_queries.append(ins)
 
-    with open(f'{queries_directory}\\dim_store.sql', 'w') as sql_file:
+    with open(f'{queries_directory}\\01-dim_store.sql', 'w') as sql_file:
 
         for query in sql_queries:
             sql_file.write(query + '\n')
@@ -103,7 +103,7 @@ def main():
         ins = f'INSERT INTO DIM_LOCATION (Suburb_ID, Suburb, Province_ID, Province, City_ID, City, Country_ID, Country) VALUES ({df_t["Suburb_ID"][row]}, "{df_t["Suburb"][row]}", {df_t["Province_ID"][row]},"{df_t["Province"][row]}", {df_t["City_ID"][row]},"{df_t["City"][row]}", {df_t["Country_ID"][row]},"{df_t["Country"][row]}");'
         sql_queries.append(ins)
 
-    with open(f'{queries_directory}\\dim_location.sql', 'w') as sql_file:
+    with open(f'{queries_directory}\\02-dim_location.sql', 'w') as sql_file:
 
         for query in sql_queries:
             sql_file.write(query + '\n')
@@ -123,7 +123,7 @@ def main():
         ins = f'INSERT INTO DIM_TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES ({int(df_t["Day"][row])}, {int(df_t["weekday"][row])}, {int(df_t["Month_ID"][row])}, {int(df_t["Month"][row])}, "{df_t["Month_Name"][row]}", {int(df_t["Year_ID"][row])}, {int(df_t["Year"][row])});'
         sql_queries.append(ins)
 
-    with open(f'{queries_directory}\\dim_time.sql', 'w') as sql_file:
+    with open(f'{queries_directory}\\03-dim_time.sql', 'w') as sql_file:
 
         for query in sql_queries:
             sql_file.write(query + '\n')
@@ -143,7 +143,7 @@ def main():
         ins = f'INSERT INTO DIM_PRODUCT (Product_ID, Product, Sub_Brand_ID, Sub_Brand, Brand_ID, Brand) VALUES ({df_t["Product_ID"][row]}, "{df_t["Product"][row]}", {df_t["Sub_Brand_ID"][row]},"{df_t["Sub_Brand"][row]}", {df_t["Brand_ID"][row]}, "{df_t["Brand"][row]}");'
         sql_queries.append(ins)
 
-    with open(f'{queries_directory}\\dim_product.sql', 'w') as sql_file:
+    with open(f'{queries_directory}\\04-dim_product.sql', 'w') as sql_file:
 
         for query in sql_queries:
             sql_file.write(query + '\n')
@@ -163,7 +163,7 @@ def main():
         ins = f'INSERT INTO SALES (Store_ID, Suburb_ID, Day_ID, Product_ID, Quantity, Price) VALUES ({df_t["Store_ID2"][row]}, {df_t["Suburb_ID"][row]},{df_t["Day_ID"][row]}, {df_t["Product_ID"][row]}, {df_t["Quantity"][row]}, {df_t["Dollar_Price"][row]});'
         sql_queries.append(ins)
 
-    with open(f'{queries_directory}\\sales.sql', 'w') as sql_file:
+    with open(f'{queries_directory}\\05-sales.sql', 'w') as sql_file:
 
         for query in sql_queries:
             sql_file.write(query + '\n')
@@ -171,12 +171,12 @@ def main():
     # -------------------------------------------------------------
     # Purchases Table
     purchases = pd.read_feather('../datasets/purchases.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/purchases.feather')
-    generate_sql(purchases, 'purchases', f'{queries_directory}\\purchases.sql', )
+    generate_sql(purchases, 'purchases', f'{queries_directory}\\06-purchases.sql', )
 
     # -------------------------------------------------------------
     # Stocks Table
     stocks = pd.read_feather('../datasets/stocks.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/stocks.feather')
-    generate_sql(stocks, 'stocks', f'{queries_directory}\\stocks.sql', )
+    generate_sql(stocks[['Store_ID2', 'Product_ID', 'Date', 'stock_qty']], 'stocks', f'{queries_directory}\\07-stocks.sql', )
 
 if __name__ == '__main__':
     main()

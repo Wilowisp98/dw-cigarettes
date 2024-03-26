@@ -64,7 +64,7 @@ def get_stocks(purchases: pd.DataFrame, sls: pd.DataFrame) -> pd.DataFrame:
     # Calculate stocks from purchases and sales
     stocks['Purchases_Cumulative'] = stocks.groupby(by=['Store_ID2', 'Product_ID'])['Purchases'].cumsum(skipna=False)
     stocks['Sales_Cumulative'] = stocks.groupby(by=['Store_ID2', 'Product_ID'])['Sales'].cumsum(skipna=False)
-    stocks['stock_qty'] = stocks['Purchases_Cumulative'].fillna(0) - stocks['Sales_Cumulative'].fillna(0)
+    stocks['stock_qty'] = (stocks['Purchases_Cumulative'].fillna(0) - stocks['Sales_Cumulative'].fillna(0)).astype(int)
 
     # Filling stocks table with data for everysingle day
     # Sort stocks by date
