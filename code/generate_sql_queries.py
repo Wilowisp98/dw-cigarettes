@@ -4,7 +4,7 @@ from utils import log_wrapper, generate_sql
 
 
 @log_wrapper
-def main():
+def main(db_name = 'dw_cigarettes'):
     try:
         df = pd.read_feather('datasets/cigarettes_treated.feather')
     except Exception as e:
@@ -13,6 +13,10 @@ def main():
     df = df.sort_values(by=['Year', 'Month', 'Day'])
 
     queries_directory = f'{__file__.split("\\")[:-1]}\\..\\sql_queries'
+    
+    # Generate SQL to create Database if not exists
+    with open(f'{queries_directory}\\00-create_dbase.sql', 'w') as sql_file:
+        sql_file.write(f'CREATE DATABASE IF NOT EXISTS {db_name};')
 
     # -----------------------------------------------
     # ALL OF THIS CAN GO TO THE DATA_TREATMENT SCRIPT
@@ -76,11 +80,11 @@ def main():
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
     sql_queries = [
-        "CREATE TABLE IF NOT EXISTS DIM_STORE (Store_ID INT,Outlet_Type VARCHAR(50), Retail_Subtype VARCHAR(50), PRIMARY KEY(Store_ID));"
+        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_STORE (Store_ID INT,Outlet_Type VARCHAR(50), Retail_Subtype VARCHAR(50), PRIMARY KEY(Store_ID));"
     ]
 
     for row in range(len(df_t)):
-        ins = f'INSERT INTO DIM_STORE (Store_ID, Outlet_Type, Retail_Subtype) VALUES ({df_t["Store_ID2"][row]}, "{df_t["Outlet_Type"][row]}", "{df_t["Retail_Subtype"][row]}");'
+        ins = f'INSERT INTO {db_name}.DIM_STORE (Store_ID, Outlet_Type, Retail_Subtype) VALUES ({df_t["Store_ID2"][row]}, "{df_t["Outlet_Type"][row]}", "{df_t["Retail_Subtype"][row]}");'
         sql_queries.append(ins)
 
     with open(f'{queries_directory}\\01-dim_store.sql', 'w') as sql_file:
@@ -96,11 +100,11 @@ def main():
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
     sql_queries = [
-        "CREATE TABLE IF NOT EXISTS DIM_LOCATION (Suburb_ID INT, Suburb VARCHAR(50), Province_ID INT, Province VARCHAR(50), City_ID INT, City VARCHAR(50), Country_ID INT, Country VARCHAR(50), PRIMARY KEY(Suburb_ID));"
+        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_LOCATION (Suburb_ID INT, Suburb VARCHAR(50), Province_ID INT, Province VARCHAR(50), City_ID INT, City VARCHAR(50), Country_ID INT, Country VARCHAR(50), PRIMARY KEY(Suburb_ID));"
     ]
 
     for row in range(len(df_t)):
-        ins = f'INSERT INTO DIM_LOCATION (Suburb_ID, Suburb, Province_ID, Province, City_ID, City, Country_ID, Country) VALUES ({df_t["Suburb_ID"][row]}, "{df_t["Suburb"][row]}", {df_t["Province_ID"][row]},"{df_t["Province"][row]}", {df_t["City_ID"][row]},"{df_t["City"][row]}", {df_t["Country_ID"][row]},"{df_t["Country"][row]}");'
+        ins = f'INSERT INTO {db_name}.DIM_LOCATION (Suburb_ID, Suburb, Province_ID, Province, City_ID, City, Country_ID, Country) VALUES ({df_t["Suburb_ID"][row]}, "{df_t["Suburb"][row]}", {df_t["Province_ID"][row]},"{df_t["Province"][row]}", {df_t["City_ID"][row]},"{df_t["City"][row]}", {df_t["Country_ID"][row]},"{df_t["Country"][row]}");'
         sql_queries.append(ins)
 
     with open(f'{queries_directory}\\02-dim_location.sql', 'w') as sql_file:
@@ -116,11 +120,11 @@ def main():
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
     sql_queries = [
-        "CREATE TABLE IF NOT EXISTS DIM_TIME (Day_ID INT AUTO_INCREMENT, Day INT, Weekday INT, Month_ID INT, Month INT, Month_Name VARCHAR(20), Year_ID INT, Year INT, PRIMARY KEY(Day_ID));"
+        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_TIME (Day_ID INT AUTO_INCREMENT, Day INT, Weekday INT, Month_ID INT, Month INT, Month_Name VARCHAR(20), Year_ID INT, Year INT, PRIMARY KEY(Day_ID));"
     ]
 
     for row in range(len(df_t)):
-        ins = f'INSERT INTO DIM_TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES ({int(df_t["Day"][row])}, {int(df_t["weekday"][row])}, {int(df_t["Month_ID"][row])}, {int(df_t["Month"][row])}, "{df_t["Month_Name"][row]}", {int(df_t["Year_ID"][row])}, {int(df_t["Year"][row])});'
+        ins = f'INSERT INTO {db_name}.DIM_TIME (Day, Weekday, Month_ID, Month, Month_Name, Year_ID, Year) VALUES ({int(df_t["Day"][row])}, {int(df_t["weekday"][row])}, {int(df_t["Month_ID"][row])}, {int(df_t["Month"][row])}, "{df_t["Month_Name"][row]}", {int(df_t["Year_ID"][row])}, {int(df_t["Year"][row])});'
         sql_queries.append(ins)
 
     with open(f'{queries_directory}\\03-dim_time.sql', 'w') as sql_file:
@@ -136,11 +140,11 @@ def main():
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
     sql_queries = [
-        "CREATE TABLE IF NOT EXISTS DIM_PRODUCT (Product_ID INT, Product VARCHAR(50), Sub_Brand_ID INT, Sub_Brand VARCHAR(100), Brand_ID INT, Brand VARCHAR(50), PRIMARY KEY(Product_ID));"
+        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_PRODUCT (Product_ID INT, Product VARCHAR(50), Sub_Brand_ID INT, Sub_Brand VARCHAR(100), Brand_ID INT, Brand VARCHAR(50), PRIMARY KEY(Product_ID));"
     ]
 
     for row in range(len(df_t)):
-        ins = f'INSERT INTO DIM_PRODUCT (Product_ID, Product, Sub_Brand_ID, Sub_Brand, Brand_ID, Brand) VALUES ({df_t["Product_ID"][row]}, "{df_t["Product"][row]}", {df_t["Sub_Brand_ID"][row]},"{df_t["Sub_Brand"][row]}", {df_t["Brand_ID"][row]}, "{df_t["Brand"][row]}");'
+        ins = f'INSERT INTO {db_name}.DIM_PRODUCT (Product_ID, Product, Sub_Brand_ID, Sub_Brand, Brand_ID, Brand) VALUES ({df_t["Product_ID"][row]}, "{df_t["Product"][row]}", {df_t["Sub_Brand_ID"][row]},"{df_t["Sub_Brand"][row]}", {df_t["Brand_ID"][row]}, "{df_t["Brand"][row]}");'
         sql_queries.append(ins)
 
     with open(f'{queries_directory}\\04-dim_product.sql', 'w') as sql_file:
@@ -156,11 +160,11 @@ def main():
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
     sql_queries = [
-        "CREATE TABLE IF NOT EXISTS SALES (Store_ID INT, Suburb_ID INT, Day_ID INT, Product_ID INT, Quantity INT, Price DECIMAL(5,4), FOREIGN KEY (Store_ID) REFERENCES DIM_STORE(Store_ID), FOREIGN KEY (Suburb_ID) REFERENCES DIM_LOCATION(Suburb_ID), FOREIGN KEY (Day_ID) REFERENCES DIM_TIME(Day_ID), FOREIGN KEY (Product_ID) REFERENCES PRODUCT(Product_ID));"
+        f"CREATE TABLE IF NOT EXISTS {db_name}.SALES (Store_ID INT, Suburb_ID INT, Day_ID INT, Product_ID INT, Quantity INT, Price DECIMAL(5,4), FOREIGN KEY (Store_ID) REFERENCES DIM_STORE(Store_ID), FOREIGN KEY (Suburb_ID) REFERENCES DIM_LOCATION(Suburb_ID), FOREIGN KEY (Day_ID) REFERENCES DIM_TIME(Day_ID), FOREIGN KEY (Product_ID) REFERENCES PRODUCT(Product_ID));"
     ]
 
     for row in range(len(df_t)):
-        ins = f'INSERT INTO SALES (Store_ID, Suburb_ID, Day_ID, Product_ID, Quantity, Price) VALUES ({df_t["Store_ID2"][row]}, {df_t["Suburb_ID"][row]},{df_t["Day_ID"][row]}, {df_t["Product_ID"][row]}, {df_t["Quantity"][row]}, {df_t["Dollar_Price"][row]});'
+        ins = f'INSERT INTO {db_name}.SALES (Store_ID, Suburb_ID, Day_ID, Product_ID, Quantity, Price) VALUES ({df_t["Store_ID2"][row]}, {df_t["Suburb_ID"][row]},{df_t["Day_ID"][row]}, {df_t["Product_ID"][row]}, {df_t["Quantity"][row]}, {df_t["Dollar_Price"][row]});'
         sql_queries.append(ins)
 
     with open(f'{queries_directory}\\05-sales.sql', 'w') as sql_file:
@@ -171,12 +175,12 @@ def main():
     # -------------------------------------------------------------
     # Purchases Table
     purchases = pd.read_feather('../datasets/purchases.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/purchases.feather')
-    generate_sql(purchases, 'purchases', f'{queries_directory}\\06-purchases.sql', )
+    generate_sql(purchases, f'{db_name}.purchases', f'{queries_directory}\\06-purchases.sql', )
 
     # -------------------------------------------------------------
     # Stocks Table
     stocks = pd.read_feather('../datasets/stocks.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/stocks.feather')
-    generate_sql(stocks[['Store_ID2', 'Product_ID', 'Date', 'stock_qty']], 'stocks', f'{queries_directory}\\07-stocks.sql', )
+    generate_sql(stocks[['Store_ID2', 'Product_ID', 'Date', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', )
 
 if __name__ == '__main__':
-    main()
+    main(db_name = 'dw_cigarettes')
