@@ -23,16 +23,16 @@ def main(db_name = 'dw_cigarettes'):
     # -------------------------------------------------------------
     # STORES TABLE
 
-    columns = ['Store_ID2', 'Outlet_Type', 'Retail_Subtype']
+    columns = ['Store_ID', 'Store_Type', 'Store_Subtype']
     df_t = df[columns]
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
     sql_queries = [
-        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_STORE (Store_ID INT,Outlet_Type VARCHAR(50), Retail_Subtype VARCHAR(50), PRIMARY KEY(Store_ID));"
+        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_STORE (Store_ID INT, Store_Type VARCHAR(50), Store_Subtype VARCHAR(50), PRIMARY KEY(Store_ID));"
     ]
 
     for row in range(len(df_t)):
-        ins = f'INSERT INTO {db_name}.DIM_STORE (Store_ID, Outlet_Type, Retail_Subtype) VALUES ({df_t["Store_ID2"][row]}, "{df_t["Outlet_Type"][row]}", "{df_t["Retail_Subtype"][row]}");'
+        ins = f'INSERT INTO {db_name}.DIM_STORE (Store_ID, Store_Type, Store_Subtype) VALUES ({df_t["Store_ID"][row]}, "{df_t["Store_Type"][row]}", "{df_t["Store_Subtype"][row]}");'
         sql_queries.append(ins)
 
     with open(f'{queries_directory}\\01-dim_store.sql', 'w') as sql_file:
@@ -81,18 +81,18 @@ def main(db_name = 'dw_cigarettes'):
             sql_file.write(query + '\n')
 
     # -------------------------------------------------------------
-    # PRODUCT TABLE
+    # Product TABLE
 
-    columns = ['Product_ID', 'Product', 'Sub_Brand_ID', 'Sub_Brand', 'Brand_ID', 'Brand']
+    columns = ['Product_ID', 'Category', 'Sub_Brand_ID', 'Sub_Brand', 'Brand_ID', 'Brand']
     df_t = df[columns]
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
     sql_queries = [
-        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_PRODUCT (Product_ID INT, Product VARCHAR(50), Sub_Brand_ID INT, Sub_Brand VARCHAR(100), Brand_ID INT, Brand VARCHAR(50), PRIMARY KEY(Product_ID));"
+        f"CREATE TABLE IF NOT EXISTS {db_name}.DIM_PRODUCT (Product_ID INT, Category VARCHAR(50), Sub_Brand_ID INT, Sub_Brand VARCHAR(100), Brand_ID INT, Brand VARCHAR(50), PRIMARY KEY(Product_ID));"
     ]
 
     for row in range(len(df_t)):
-        ins = f'INSERT INTO {db_name}.DIM_PRODUCT (Product_ID, Product, Sub_Brand_ID, Sub_Brand, Brand_ID, Brand) VALUES ({df_t["Product_ID"][row]}, "{df_t["Product"][row]}", {df_t["Sub_Brand_ID"][row]},"{df_t["Sub_Brand"][row]}", {df_t["Brand_ID"][row]}, "{df_t["Brand"][row]}");'
+        ins = f'INSERT INTO {db_name}.DIM_PRODUCT (Product_ID, Category, Sub_Brand_ID, Sub_Brand, Brand_ID, Brand) VALUES ({df_t["Product_ID"][row]}, "{df_t["Category"][row]}", {df_t["Sub_Brand_ID"][row]},"{df_t["Sub_Brand"][row]}", {df_t["Brand_ID"][row]}, "{df_t["Brand"][row]}");'
         sql_queries.append(ins)
 
     with open(f'{queries_directory}\\04-dim_product.sql', 'w') as sql_file:
@@ -103,7 +103,7 @@ def main(db_name = 'dw_cigarettes'):
     # -------------------------------------------------------------
     # SALES TABLE
 
-    columns = ['Store_ID2', 'Suburb_ID', 'Day_ID', 'Product_ID', 'Quantity', 'Dollar_Price']
+    columns = ['Store_ID', 'Suburb_ID', 'Day_ID', 'Product_ID', 'Quantity', 'Dollar_Price']
     df_t = df[columns]
     df_t = df_t.drop_duplicates().reset_index(drop=True)
 
@@ -112,7 +112,7 @@ def main(db_name = 'dw_cigarettes'):
     ]
 
     for row in range(len(df_t)):
-        ins = f'INSERT INTO {db_name}.SALES (Store_ID, Suburb_ID, Day_ID, Product_ID, Quantity, Price) VALUES ({df_t["Store_ID2"][row]}, {df_t["Suburb_ID"][row]},{df_t["Day_ID"][row]}, {df_t["Product_ID"][row]}, {df_t["Quantity"][row]}, {df_t["Dollar_Price"][row]});'
+        ins = f'INSERT INTO {db_name}.SALES (Store_ID, Suburb_ID, Day_ID, Product_ID, Quantity, Price) VALUES ({df_t["Store_ID"][row]}, {df_t["Suburb_ID"][row]},{df_t["Day_ID"][row]}, {df_t["Product_ID"][row]}, {df_t["Quantity"][row]}, {df_t["Dollar_Price"][row]});'
         sql_queries.append(ins)
 
     with open(f'{queries_directory}\\05-sales.sql', 'w') as sql_file:
@@ -123,14 +123,14 @@ def main(db_name = 'dw_cigarettes'):
     # -------------------------------------------------------------
     # Purchases Table
     purchases = pd.read_feather('../datasets/purchases.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/purchases.feather')
-    purchases = purchases[['Day_ID', 'Store_ID2', 'Product_ID', 'Quantity']]
-    purchases = purchases.rename(columns = {'Store_ID2': 'Store_ID'})
+    purchases = purchases[['Day_ID', 'Store_ID', 'Product_ID', 'Quantity']]
+    purchases = purchases.rename(columns = {'Store_ID': 'Store_ID'})
     generate_sql(purchases, f'{db_name}.purchases', f'{queries_directory}\\06-purchases.sql', insert_every_row=True)
 
     # -------------------------------------------------------------
     # Stocks Table
     stocks = pd.read_feather('../datasets/stocks.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/stocks.feather')
-    generate_sql(stocks[['Store_ID2', 'Product_ID', 'Day_ID', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', insert_every_row=True)
+    generate_sql(stocks[['Store_ID', 'Product_ID', 'Day_ID', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', insert_every_row=True)
 
 if __name__ == '__main__':
     main(db_name = 'dw_cigarettes')

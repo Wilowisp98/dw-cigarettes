@@ -25,6 +25,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # purchases = utils.pd.read_feather('datasets/purchases.feather')
-    # utils.generate_sql(purchases, 'purchases', f'sql_queries\\purchases.sql', )
     main()

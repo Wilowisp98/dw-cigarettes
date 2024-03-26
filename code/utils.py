@@ -23,7 +23,7 @@ def generate_id(df: pd.DataFrame, cols_for_id: list) -> pd.Series:
     return output
 
 
-def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key: Optional[str] = None, use_tqdm: bool=True, insert_every_row: bool=False) -> None:
+def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key: Optional[str] = None, use_tqdm: bool=True, insert_every_row: bool=False, drop_table: bool=True) -> None:
     '''
         Generate a SQL query from a given dataframe and save it to a file
         Args:
@@ -42,6 +42,7 @@ def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key:
     }    
     with open(file_name, 'w') as sql_file:
         # Create table statement
+        if drop_table: sql_file.write(f'DROP TABLE IF EXISTS {table_name};\n')
         sql_file.write(f'CREATE TABLE IF NOT EXISTS {table_name} (')
         for column in df.columns[:-1]:
             sql_file.write(f'\n    {column} {types_mapping[df[column].dtype.name]},')

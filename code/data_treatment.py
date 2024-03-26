@@ -19,15 +19,24 @@ def main():
     # -------------
     df = df.query('Year >= 1000')   # Drop everything which has a incorrect Year
     df = df.dropna(subset=['Year', 'Month', 'Day', 'Dollar_Price', 'Quantity']).copy()      # Drop null values
+
+    # Changing the names of some columns
+    df = df.rename(columns = {
+        'Outlet_Type': 'Store_Type',
+        'Retail_Subtype': 'Store_Subtype',
+        'Product': 'Category'
+    })
+
     # Make date a datetime column
     df['Date'] = df['Year'].astype(int).astype(str) + '-' + df['Month'].astype(int).astype(str) + '-'  + df['Day'].astype(int).astype(str)
     df['Date'] = pd.to_datetime(df['Date'])
 
     # Generating a Product_ID
-    df['Product'] = df['Product'].fillna('Cigarrette')
-    df['Product_ID'] = generate_id(df, ['Product', 'Brand', 'Sub_Brand'])
-    df['Store_ID2'] = generate_id(df, ['Province', 'Store_ID', 'City', 'Suburb', 'Outlet_Type', 'Retail_Subtype'])  # Generating Store_ID
-    df['Fieldworker_ID'] = generate_id(df, ['Fieldworker_Code', 'Store_ID2'])   # Generating Fieldworker_ids
+    df['Category'] = df['Category'].fillna('Cigarette')
+    df['Product_ID'] = generate_id(df, ['Category', 'Brand', 'Sub_Brand'])
+    df['Store_ID'] = generate_id(df, ['Province', 'Store_ID', 'City', 'Suburb', 'Store_Type', 'Store_Subtype'])  # Generating Store_ID
+    df['Fieldworker_ID'] = generate_id(df, ['Fieldworker_Code', 'Store_ID'])   # Generating Fieldworker_ids
+
 
     # Rounding every float value to 4 decimal places
     for col in df.columns:
@@ -54,12 +63,12 @@ def main():
     df['Province_ID'] = generate_id(df, ['Province', 'City', 'Country'])            # Creating Province IDs
     df['City_ID'] = generate_id(df, ['City', 'Country'])                            # Creating City IDs
     df['Country_ID'] = generate_id(df, ['Country'])                                 # Creating Country IDs
-    dim_time['Day_ID'] = generate_id(dim_time, ['Date'])                            # Creating Day IDs
-    dim_time['Month_ID'] = generate_id(dim_time, ['Month', 'Year'])                       # Creating Month IDs
-    dim_time['Year_ID'] = generate_id(df, ['Year'])                                       # Creating Year IDs
     df['Sub_Brand_ID'] = generate_id(df, ['Sub_Brand', 'Brand'])                    # Creating Sub-Brand IDs
     df['Brand_ID'] = generate_id(df, ['Brand'])                                     # Creating Brand Ids
-
+    # For dim_time
+    dim_time['Day_ID'] = generate_id(dim_time, ['Date'])                            # Creating Day IDs
+    dim_time['Month_ID'] = generate_id(dim_time, ['Month', 'Year'])                 # Creating Month IDs
+    dim_time['Year_ID'] = generate_id(df, ['Year'])                                 # Creating Year IDs
 
     # ------------------
     # Add Day_ID to df
