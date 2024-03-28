@@ -55,7 +55,8 @@ def main():
                            '15_64_female', '15_64_male', 'above_64_female', 'above_64_male', 
                            'pop_female', 'pop_male', 'total_pop']]
     
-    merged_df.to_csv(f'{current_directory}/datasets/countries.csv', index=False)
+    merged_df.to_csv(f'{current_directory}/../datasets/countries.csv', index=False)
+    merged_df.to_feather(f'{current_directory}/../datasets/countries.feaather', index=False)
 
 if __name__ == '__main__':
     main()
