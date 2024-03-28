@@ -53,7 +53,7 @@ def main():
     merged_df.drop('Country', axis=1, inplace=True)
 
     # Put Country_ID on first column
-    merged_df = merged_df[['Country_ID', 'Country Name', 'Country Code', 'Year', 
+    merged_df = merged_df[['Country_ID', 'Year', 
                            '15_64_female', '15_64_male', 'above_64_female', 'above_64_male', 
                            'pop_female', 'pop_male', 'total_pop']]
     
