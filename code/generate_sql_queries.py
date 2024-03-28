@@ -125,12 +125,17 @@ def main(db_name = 'dw_cigarettes'):
     purchases = pd.read_feather('../datasets/purchases.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/purchases.feather')
     purchases = purchases[['Day_ID', 'Store_ID', 'Product_ID', 'Quantity']]
     purchases = purchases.rename(columns = {'Store_ID': 'Store_ID'})
-    generate_sql(purchases, f'{db_name}.purchases', f'{queries_directory}\\06-purchases.sql', insert_every_row=True)
+    foreign_keys = {
+        'Day_ID': 'DIM_TIME(Day_ID)',
+        'Store_ID': 'DIM_STORE(Store_ID)',
+        'Product_ID': 'DIM_PRODUCT(Product_ID)'
+    }
+    generate_sql(purchases, f'{db_name}.purchases', f'{queries_directory}\\06-purchases.sql', insert_every_row=True, foreign_keys=foreign_keys)
 
     # -------------------------------------------------------------
     # Stocks Table
     stocks = pd.read_feather('../datasets/stocks.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/stocks.feather')
-    generate_sql(stocks[['Store_ID', 'Product_ID', 'Day_ID', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', insert_every_row=True)
+    generate_sql(stocks[['Store_ID', 'Product_ID', 'Day_ID', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', insert_every_row=True, foreign_keys=foreign_keys)
 
 if __name__ == '__main__':
     main(db_name = 'dw_cigarettes')

@@ -2,7 +2,7 @@ import datetime as dt
 import pandas as pd
 import tqdm
 
-from typing import Optional
+from typing import Optional, Dict
 
 def log_wrapper(func):
     def wrapper(*args, **kwargs):
@@ -23,7 +23,16 @@ def generate_id(df: pd.DataFrame, cols_for_id: list) -> pd.Series:
     return output
 
 
-def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key: Optional[str] = None, use_tqdm: bool=True, insert_every_row: bool=False, drop_table: bool=True) -> None:
+def generate_sql(
+    df: pd.DataFrame,
+    table_name: str,
+    file_name: str,
+    primary_key: Optional[str] = None,
+    use_tqdm: bool=True,
+    insert_every_row: bool=False,
+    drop_table: bool=True,
+    foreign_keys: Optional[Dict[str, str]] = None,
+) -> None:
     '''
         Generate a SQL query from a given dataframe and save it to a file
         Args:
@@ -49,6 +58,9 @@ def generate_sql(df: pd.DataFrame, table_name: str, file_name: str, primary_key:
         column = df.columns[-1]
         sql_file.write(f'\n    {column} {types_mapping[df[column].dtype.name]}')
         if primary_key is not None: sql_file.write(f',\n    PRIMARY KEY({primary_key})')
+        if foreign_keys is not None:
+            for foreign_key, foreign_reference in foreign_keys.items():
+                sql_file.write(f',\n    FOREIGN KEY ({foreign_key}) REFERENCES {foreign_reference}')
         sql_file.write('\n);')
 
         # Writing the insert statement
