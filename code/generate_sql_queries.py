@@ -130,12 +130,21 @@ def main(db_name = 'dw_cigarettes'):
         'Store_ID': 'DIM_STORE(Store_ID)',
         'Product_ID': 'DIM_PRODUCT(Product_ID)'
     }
-    generate_sql(purchases, f'{db_name}.purchases', f'{queries_directory}\\06-purchases.sql', insert_every_row=True, foreign_keys=foreign_keys)
+    generate_sql(purchases, f'{db_name}.purchases', f'{queries_directory}\\06-purchases.sql', insert_every_row=False, foreign_keys=foreign_keys)
 
     # -------------------------------------------------------------
     # Stocks Table
     stocks = pd.read_feather('../datasets/stocks.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/stocks.feather')
-    generate_sql(stocks[['Store_ID', 'Product_ID', 'Day_ID', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', insert_every_row=True, foreign_keys=foreign_keys)
+    generate_sql(stocks[['Store_ID', 'Product_ID', 'Day_ID', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', insert_every_row=False, foreign_keys=foreign_keys)
+
+    # -------------------------------------------------------------
+    # Countries Table
+    foreign_keys = {
+        'Country_ID': 'DIM_LOCATION(Country_ID)',
+        'Year_ID': 'DIM_TIME(Year_ID)'
+    }
+    countries = pd.read_feather('../datasets/countries.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/countries.feather')
+    generate_sql(countries, f'{db_name}.countries', f'{queries_directory}\\12-countries.sql', insert_every_row=False, foreign_keys=foreign_keys)
 
 if __name__ == '__main__':
     main(db_name = 'dw_cigarettes')
