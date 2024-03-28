@@ -4,8 +4,8 @@ import os
 def main():
     current_directory = os.getcwd()
 
-    countries_ds = f'{current_directory}/../datasets/b0bab1c0-d1c7-485c-b639-ee59bc2293f3_Data.csv'
-    main_dataset = f'{current_directory}/../datasets/cigarettes_treated.feather'
+    countries_ds = f'{current_directory}/datasets/b0bab1c0-d1c7-485c-b639-ee59bc2293f3_Data.csv'
+    main_dataset = f'{current_directory}/datasets/cigarettes_treated.feather'
 
     df = pd.read_csv(countries_ds)
     df_main = pd.read_feather(main_dataset)
@@ -38,7 +38,17 @@ def main():
 
     df_filtered = df_filtered.rename_axis(None, axis=1)
 
-    df_filtered.to_csv(f'{current_directory}/../datasets/countries.csv')
+
+    merged_df = pd.merge(df_filtered, df_main[['Country', 'Country_ID']], left_on='Country Name', right_on='Country', how='left')
+    merged_df.drop_duplicates(subset=['Country Name', 'Country Code', 'Year'], inplace=True)
+    merged_df.drop('Country', axis=1, inplace=True)
+
+    merged_df = merged_df[['Country_ID', 'Country Name', 'Country Code', 'Year', 
+                           '15_64_female', '15_64_male', 'above_64_female', 'above_64_male', 
+                           'pop_female', 'pop_male', 'total_pop']]
+    
+    merged_df.to_csv(f'{current_directory}/datasets/countries.csv', index=False)
 
 if __name__ == '__main__':
     main()
+
