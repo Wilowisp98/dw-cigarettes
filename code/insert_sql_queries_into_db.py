@@ -19,6 +19,8 @@ def main(
     for sql_file in tqdm.tqdm(queries, desc='Executing SQL queries'):
         with open(f'{sql_queries_dir}/{sql_file}', 'r') as file:
             queries = file.read()
+            # Check if create table exists in the query file, if not ignore it
+            if not 'CREATE' in queries: continue
             # if there is more than 1 query, execute them all
             for query in queries.split(';'):
                 if len(query) < 5: continue
