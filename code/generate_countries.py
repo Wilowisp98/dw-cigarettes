@@ -1,12 +1,15 @@
 import pandas as pd
 import os
+import utils
 
+
+@utils.log_wrapper
 def main():
-    current_directory = os.getcwd()
+    current_directory = '\\'.join(__file__.split("\\")[:-1])
 
     
-    countries_ds = f'{current_directory}/datasets/b0bab1c0-d1c7-485c-b639-ee59bc2293f3_Data.csv'
-    main_dataset = f'{current_directory}/datasets/cigarettes_treated.feather'
+    countries_ds = f'{current_directory}/../datasets/b0bab1c0-d1c7-485c-b639-ee59bc2293f3_Data.csv'
+    main_dataset = f'{current_directory}/../datasets/cigarettes_treated.feather'
 
     df = pd.read_csv(countries_ds)
     df_main = pd.read_feather(main_dataset)
