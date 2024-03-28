@@ -68,7 +68,7 @@ def main():
     # For dim_time
     dim_time['Day_ID'] = generate_id(dim_time, ['Date'])                            # Creating Day IDs
     dim_time['Month_ID'] = generate_id(dim_time, ['Month', 'Year'])                 # Creating Month IDs
-    dim_time['Year_ID'] = generate_id(df, ['Year'])                                 # Creating Year IDs
+    dim_time['Year_ID'] = generate_id(dim_time, ['Year'])                                 # Creating Year IDs
 
     # ------------------
     # Add Day_ID to df

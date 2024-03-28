@@ -10,9 +10,11 @@ def main():
     
     countries_ds = f'{current_directory}/../datasets/b0bab1c0-d1c7-485c-b639-ee59bc2293f3_Data.csv'
     main_dataset = f'{current_directory}/../datasets/cigarettes_treated.feather'
+    dim_time = f'{current_directory}/../datasets/dim_time.feather'
 
     df = pd.read_csv(countries_ds)
     df_main = pd.read_feather(main_dataset)
+    df_time = pd.read_feather(dim_time)
 
     df.drop('Series Code', axis=1, inplace=True)
 
@@ -55,8 +57,12 @@ def main():
                            '15_64_female', '15_64_male', 'above_64_female', 'above_64_male', 
                            'pop_female', 'pop_male', 'total_pop']]
     
+    # Add Year_ID to merged_df
+    merged_df['Year'] = merged_df['Year'].astype(int)
+    merged_df = merged_df.merge(df_time[['Year', 'Year_ID']].drop_duplicates())
+    
     merged_df.to_csv(f'{current_directory}/../datasets/countries.csv', index=False)
-    merged_df.to_feather(f'{current_directory}/../datasets/countries.feaather')
+    merged_df.to_feather(f'{current_directory}/../datasets/countries.feather')
 
 if __name__ == '__main__':
     main()

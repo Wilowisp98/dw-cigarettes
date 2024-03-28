@@ -52,7 +52,7 @@ def generate_sql(
     with open(file_name, 'w') as sql_file:
         # Create table statement
         if drop_table: sql_file.write(f'DROP TABLE IF EXISTS {table_name};\n')
-        sql_file.write(f'CREATE TABLE IF NOT EXISTS `{table_name}` (')
+        sql_file.write(f'CREATE TABLE IF NOT EXISTS {table_name} (')
         for column in df.columns[:-1]:
             sql_file.write(f'\n    `{column}` {types_mapping[df[column].dtype.name]},')
         column = df.columns[-1]
@@ -64,12 +64,12 @@ def generate_sql(
         sql_file.write('\n);')
 
         # Writing the insert statement
-        if not insert_every_row: sql_file.write( f'\nINSERT INTO `{table_name}` VALUES (\n')
+        if not insert_every_row: sql_file.write( f'\nINSERT INTO {table_name} VALUES (\n')
         else: sql_file.write('\n')
         iter = tqdm.tqdm(df.iloc[:-1].iterrows(), total=df.shape[0], desc='Iterating rows') if use_tqdm else df.iloc[:-1].iterrows()
         for _, row in iter:
             if not insert_every_row: sql_file.write('    (')
-            if insert_every_row: sql_file.write( f'INSERT INTO `{table_name}` VALUES (')
+            if insert_every_row: sql_file.write( f'INSERT INTO {table_name} VALUES (')
             for column in df.columns[:-1]: 
                 if types_mapping[df[column].dtype.name].startswith('VARCH') or types_mapping[df[column].dtype.name].startswith('DAT'): 
                     sql_file.write(f'"{row[column]}", ')
@@ -80,10 +80,11 @@ def generate_sql(
             else: sql_file.write(f'{row[column]}')
             sql_file.write(')')
             if insert_every_row: sql_file.write(';')
+            else: sql_file.write(',')
             sql_file.write('\n')
 
         if not insert_every_row: sql_file.write('    (')
-        if insert_every_row: sql_file.write( f'INSERT INTO `{table_name}` VALUES (')
+        if insert_every_row: sql_file.write( f'INSERT INTO {table_name} VALUES (')
         row = df.iloc[-1]
         for column in df.columns[:-1]: 
             if types_mapping[df[column].dtype.name].startswith('VARCH') or types_mapping[df[column].dtype.name].startswith('DAT'): 
@@ -98,3 +99,11 @@ def generate_sql(
         sql_file.write(';\n')
 
     return True
+
+if __name__ == '__main__':
+    foreign_keys = {
+        'Country_ID': 'DIM_LOCATION(Country_ID)',
+        'Year_ID': 'DIM_TIME(Year_ID)'
+    }
+    countries = pd.read_feather('datasets/countries.feather')
+    generate_sql(countries, f'dw_cigarettes.countries', f'sql_queries\\12-countries.sql', insert_every_row=True, foreign_keys=foreign_keys)
