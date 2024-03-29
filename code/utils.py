@@ -66,7 +66,7 @@ def generate_sql(
         # Writing the insert statement
         if not insert_every_row: sql_file.write( f'\nINSERT INTO {table_name} VALUES (\n')
         else: sql_file.write('\n')
-        iter = tqdm.tqdm(df.iloc[:-1].iterrows(), total=df.shape[0], desc='Iterating rows') if use_tqdm else df.iloc[:-1].iterrows()
+        iter = tqdm.tqdm(df.iloc[:-1].iterrows(), total=df.shape[0], desc=f'<{table_name}> - Generating SQL Files') if use_tqdm else df.iloc[:-1].iterrows()
         for _, row in iter:
             if not insert_every_row: sql_file.write('    (')
             if insert_every_row: sql_file.write( f'INSERT INTO {table_name} VALUES (')

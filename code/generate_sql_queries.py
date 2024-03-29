@@ -18,7 +18,7 @@ def main(db_name = 'dw_cigarettes'):
     
     # Generate SQL to create Database if not exists
     with open(f'{queries_directory}\\00-create_dbase.sql', 'w') as sql_file:
-        sql_file.write(f'CREATE DATABASE IF NOT EXISTS {db_name};')
+        sql_file.write(f'DROP DATABASE {db_name};\nCREATE DATABASE IF NOT EXISTS {db_name};')
 
     # -------------------------------------------------------------
     # STORES TABLE
