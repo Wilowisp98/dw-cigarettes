@@ -4,7 +4,7 @@ import numpy as np
 from utils import log_wrapper
 
 # Obtaining current working directory (necessary for when running with another folder as "Project" in VSCode)
-current_directory = __file__.split("\\")[:-1]
+current_directory = '\\'.join(__file__.split("\\")[:-1])
 
 
 # Load data functions

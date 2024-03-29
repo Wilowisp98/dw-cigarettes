@@ -3,18 +3,18 @@ import pandas as pd
 from utils import log_wrapper, generate_sql
 
 
+# Obtaining current working directory (necessary for when running with another folder as "Project" in VSCode)
+current_directory = '\\'.join(__file__.split("\\")[:-1])
+
+
 @log_wrapper
 def main(db_name = 'dw_cigarettes'):
-    try:
-        df = pd.read_feather('datasets/cigarettes_treated.feather')
-        dim_time = pd.read_feather('datasets/dim_time.feather')
-    except Exception as e:
-        df = pd.read_csv('../datasets/cigarettes_treated.csv')
-        df['Date'] = pd.to_datetime(df['Date'])
-        dim_time = pd.read_feather('../datasets/dim_time.feather')
+    df = pd.read_feather(f'{current_directory}/../datasets/cigarettes_treated.feather')
+    dim_time = pd.read_feather(f'{current_directory}/../datasets/dim_time.feather')
+
     df = df.sort_values(by=['Year', 'Month', 'Day'])
 
-    queries_directory = f'{__file__.split("\\")[:-1]}\\..\\sql_queries'
+    queries_directory = '{}\\..\\sql_queries'.format(__file__.split("\\")[:-1])
     
     # Generate SQL to create Database if not exists
     with open(f'{queries_directory}\\00-create_dbase.sql', 'w') as sql_file:
