@@ -14,7 +14,7 @@ def main(db_name = 'dw_cigarettes'):
 
     df = df.sort_values(by=['Year', 'Month', 'Day'])
 
-    queries_directory = '{}\\..\\sql_queries'.format(__file__.split("\\")[:-1])
+    queries_directory = f'{current_directory}\\..\\sql_queries'
     
     # Generate SQL to create Database if not exists
     with open(f'{queries_directory}\\00-create_dbase.sql', 'w') as sql_file:
@@ -122,7 +122,7 @@ def main(db_name = 'dw_cigarettes'):
 
     # -------------------------------------------------------------
     # Purchases Table
-    purchases = pd.read_feather('../datasets/purchases.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/purchases.feather')
+    purchases = pd.read_feather(f'{current_directory}/../datasets/purchases.feather')
     purchases = purchases[['Day_ID', 'Store_ID', 'Product_ID', 'Quantity']]
     purchases = purchases.rename(columns = {'Store_ID': 'Store_ID'})
     foreign_keys = {
@@ -134,7 +134,7 @@ def main(db_name = 'dw_cigarettes'):
 
     # -------------------------------------------------------------
     # Stocks Table
-    stocks = pd.read_feather('../datasets/stocks.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/stocks.feather')
+    stocks = pd.read_feather(f'{current_directory}/../datasets/stocks.feather')
     generate_sql(stocks[['Store_ID', 'Product_ID', 'Day_ID', 'stock_qty']], f'{db_name}.stocks', f'{queries_directory}\\07-stocks.sql', insert_every_row=True, foreign_keys=foreign_keys)
 
     # -------------------------------------------------------------
@@ -143,7 +143,7 @@ def main(db_name = 'dw_cigarettes'):
         'Country_ID': 'DIM_LOCATION(Country_ID)',
         'Year_ID': 'DIM_TIME(Year_ID)'
     }
-    countries = pd.read_feather('../datasets/countries.feather') if os.path.isdir('../datasets') else pd.read_feather('datasets/countries.feather')
+    countries = pd.read_feather(f'{current_directory}/../datasets/countries.feather')
     generate_sql(countries, f'{db_name}.countries', f'{queries_directory}\\12-countries.sql', insert_every_row=True, foreign_keys=foreign_keys)
 
 if __name__ == '__main__':

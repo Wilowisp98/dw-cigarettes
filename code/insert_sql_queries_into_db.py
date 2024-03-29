@@ -1,6 +1,6 @@
 import os
 import tqdm
-import sqlalchemy
+import sqlalchemy   # Requires pymysql
 import utils
 
 

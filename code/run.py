@@ -9,6 +9,8 @@ import utils
 # Setting the random seed to a fixed value so we can reproduce the same results
 generate_purchases_and_stocks.np.random.seed(0)
 
+current_directory = '\\'.join(__file__.split("\\")[:-1])
+
 
 # Execute all scripts
 @utils.log_wrapper
@@ -19,7 +21,7 @@ def main():
     generate_countries.main()
     generate_sql_queries.main() 
     insert_sql_queries_into_db.main(
-        sql_queries_dir='./sql_queries',
+        sql_queries_dir=f'{current_directory}/../sql_queries',
         user='root',
         password='root',
         host='localhost'
