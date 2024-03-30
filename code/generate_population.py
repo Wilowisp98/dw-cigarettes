@@ -7,11 +7,11 @@ def main():
     current_directory = '\\'.join(__file__.split("\\")[:-1])
     
     # Load datasets
-    countries_ds = f'{current_directory}/../datasets/b0bab1c0-d1c7-485c-b639-ee59bc2293f3_Data.csv'
+    population_ds = f'{current_directory}/../datasets/b0bab1c0-d1c7-485c-b639-ee59bc2293f3_Data.csv'
     main_dataset = f'{current_directory}/../datasets/cigarettes_treated.feather'
     dim_time = f'{current_directory}/../datasets/dim_time.feather'
 
-    df = pd.read_csv(countries_ds)
+    df = pd.read_csv(population_ds)
     df_main = pd.read_feather(main_dataset)
     df_time = pd.read_feather(dim_time)
 
@@ -48,24 +48,22 @@ def main():
 
     df_filtered = df_filtered.rename_axis(None, axis=1)
 
-    #create countries df
+    #create population df
     merged_df = pd.merge(df_filtered, df_main[['Country', 'Country_ID']], left_on='Country Name', right_on='Country', how='left')
     merged_df.drop_duplicates(subset=['Country Name', 'Country Code', 'Year'], inplace=True)
     
     #remove duplicates
     merged_df.drop('Country', axis=1, inplace=True)
 
-    # Put Country_ID on first column
-    merged_df = merged_df[['Country_ID', 'Year', 
-                           '15_64_female', '15_64_male', 'above_64_female', 'above_64_male', 
-                           'pop_female', 'pop_male', 'total_pop']]
-    
     # Add Year_ID to merged_df
     merged_df['Year'] = merged_df['Year'].astype(int)
     merged_df = merged_df.merge(df_time[['Year', 'Year_ID']].drop_duplicates())
     
-    merged_df.to_csv(f'{current_directory}/../datasets/countries.csv', index=False)
-    merged_df.to_feather(f'{current_directory}/../datasets/countries.feather')
+    # Put Country_ID + Year_ID on first columns
+    merged_df = merged_df[['Country_ID', 'Year_ID', '15_64_female', '15_64_male', 'above_64_female', 'above_64_male', 'pop_female', 'pop_male', 'total_pop']]
+    
+    merged_df.to_csv(f'{current_directory}/../datasets/population.csv', index=False)
+    merged_df.to_feather(f'{current_directory}/../datasets/population.feather')
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,7 @@
 import data_treatment
 import generate_currency
 import generate_purchases_and_stocks
-import generate_countries
+import generate_population as generate_population
 import generate_sql_queries
 import insert_sql_queries_into_db
 import utils
@@ -18,7 +18,7 @@ def main():
     data_treatment.main()
     generate_currency.main()
     generate_purchases_and_stocks.main()
-    generate_countries.main()
+    generate_population.main()
     generate_sql_queries.main() 
     insert_sql_queries_into_db.main(
         sql_queries_dir=f'{current_directory}/../sql_queries',

@@ -46,8 +46,8 @@ def generate_sql(
         'float32': 'FLOAT',
         'float64': 'FLOAT',
         'datetime64[ns]': 'DATE',
-        'object': 'VARCHAR(50)',
-        'string': 'VARCHAR(50)'
+        'object': 'VARCHAR(100)',
+        'string': 'VARCHAR(100)'
     }    
     with open(file_name, 'w') as sql_file:
         # Create table statement
@@ -66,7 +66,7 @@ def generate_sql(
         # Writing the insert statement
         if not insert_every_row: sql_file.write( f'\nINSERT INTO {table_name} VALUES (\n')
         else: sql_file.write('\n')
-        iter = tqdm.tqdm(df.iloc[:-1].iterrows(), total=df.shape[0], desc=f'<{table_name}> - Generating SQL Files') if use_tqdm else df.iloc[:-1].iterrows()
+        iter = tqdm.tqdm(df.iloc[:-1].iterrows(), total=df.shape[0]-1, desc=f'<{table_name}> - Generating SQL Files') if use_tqdm else df.iloc[:-1].iterrows()
         for _, row in iter:
             if not insert_every_row: sql_file.write('    (')
             if insert_every_row: sql_file.write( f'INSERT INTO {table_name} VALUES (')
