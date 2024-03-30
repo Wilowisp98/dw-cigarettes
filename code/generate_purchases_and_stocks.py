@@ -55,7 +55,7 @@ def get_purchases(df: pd.DataFrame, multipliers: tuple[float, float]=(0.3, -0.1)
 
     # Adding a +/- multiplier to the quantity to account for the fact that we will not be able to purchase all of the items
     purchases['multiplier'] = np.random.random(purchases.shape[0])
-    # Normalize it to a value between -0.1 and 0.3 (this will be multiplied by the week's sales qty)
+    # Normalize it to a value between multiplier[1] and multiplier[0] (this will be multiplied by the week's sales qty)
     purchases['multiplier'] = purchases['multiplier'] / np.abs(purchases['multiplier']).max() * multipliers[0] + multipliers[1]
 
     # Multiply the quantity by the multiplier
