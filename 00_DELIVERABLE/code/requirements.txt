@@ -1,0 +1,6 @@
+sqlalchemy
+pyarrow
+pymysql
+pandas
+numpy
+tqdm
