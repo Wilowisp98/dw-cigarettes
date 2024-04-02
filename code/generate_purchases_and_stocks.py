@@ -18,14 +18,15 @@ def load_sls_data(file_name: str=f'{current_directory}/../datasets/cigarettes_tr
             sls (pd.DataFrame): the SLS dataset
     '''
     sls = pd.read_feather(file_name)
-    sls = sls.groupby(by=['Store_ID', 'Product_ID', 'Date', 'Day_ID'], as_index=False)['Quantity'].sum()
+    sls['unit_price'] = sls['Dollar_Price'] / sls['Quantity']
+    sls = sls.groupby(by=['Store_ID', 'Product_ID', 'Date', 'Day_ID'], as_index=False)[['Quantity', 'unit_price']].agg({'Quantity': 'sum', 'unit_price': 'mean'})
     return sls
 
 
 @log_wrapper
 def load_dimtime_data(file_name: str=f'{current_directory}/../datasets/dim_time.feather') -> pd.DataFrame:
     '''
-        Load the SLS dataset
+        Load the DIM_TIME dataset
         Args:
             file_name (str): path to the file to be loaded
         Returns:
@@ -51,7 +52,10 @@ def get_purchases(df: pd.DataFrame, multipliers: tuple[float, float]=(0.3, -0.1)
     sls['Last Restock'] = pd.to_datetime((sls['Date'].astype(np.int64) // 10**9) - ((sls['Date'].dt.weekday - sls['Restock_Weekday']) % 7)*24*60*60, unit="s")
 
     # Checking how much we would have to purchase each week so that the sales are possible and non-negative
-    purchases = sls.groupby(by=['Last Restock', 'Store_ID', 'Product_ID'], as_index=False)['Quantity'].sum().rename(columns={'Last Restock': 'Date'})
+    purchases = sls.groupby(by=['Last Restock', 'Store_ID', 'Product_ID'], as_index=False)[['Quantity', 'unit_price']].agg({
+        'Quantity': 'sum',
+        'unit_price': 'mean'
+    }).rename(columns={'Last Restock': 'Date'})
 
     # Adding a +/- multiplier to the quantity to account for the fact that we will not be able to purchase all of the items
     purchases['multiplier'] = np.random.random(purchases.shape[0])
@@ -60,8 +64,17 @@ def get_purchases(df: pd.DataFrame, multipliers: tuple[float, float]=(0.3, -0.1)
 
     # Multiply the quantity by the multiplier
     purchases['Quantity'] = (purchases['Quantity'] * (1 + purchases['multiplier'])).round(0).astype(int)
+    
+    # Calculate the price of the purchase (assuming we have a random margin of a MAX of 10%)
+    purchases['Price'] = np.random.random(purchases.shape[0])
+    # Normalizing random value to a max of 10%
+    purchases['Price'] = purchases['Price'] / np.abs(purchases['Price']).max() * 0.1
+    # Updating unit_price according to random variable
+    purchases['unit_price'] = purchases['unit_price'] * (1 - purchases['Price'])
+    # Calculating price from unit_price and quantity
+    purchases['Price'] = purchases['unit_price'] * purchases['Quantity']
 
-    return purchases.drop(columns=['multiplier'])
+    return purchases.drop(columns=['multiplier', 'unit_price'])
 
 
 @log_wrapper
