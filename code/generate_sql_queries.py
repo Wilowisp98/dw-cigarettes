@@ -83,7 +83,7 @@ def main(db_name = 'dw_cigarettes'):
     # -------------------------------------------------------------
     # Purchases Table
     purchases = pd.read_feather(f'{current_directory}/../datasets/purchases.feather')
-    purchases = purchases[['Day_ID', 'Store_ID', 'Product_ID', 'Quantity']]
+    purchases = purchases[['Day_ID', 'Store_ID', 'Product_ID', 'Quantity', 'Price']]
     foreign_keys = {
         'Day_ID': 'DIM_TIME(Day_ID)',
         'Store_ID': 'DIM_STORE(Store_ID)',
